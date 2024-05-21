@@ -33,6 +33,7 @@ parser.add_argument('-p', '--pickup', type=float, metavar='', required=True, hel
 parser.add_argument('-vl', '--lowlim', type=float, metavar='', required=False, help='lower limit of voltage')
 parser.add_argument('-v2', '--VDepOCV2', type=float, metavar='', required=False, help='V Dep OC V2')
 parser.add_argument('-v1', '--VDepOCV1', type=float, metavar='', required=False, help='V Dep OC V1')
+parser.add_argument('-dt', '--DTAdder', type=float, metavar='', required=False, help='DT Adder')
 parser.add_argument('-ct', '--ctprim', type=float, metavar='', required=False, help='ct primary say 800')
 parser.add_argument('-vn', '--vnom', type=float, metavar='', required=False, help='Nominal voltage 11kv')
 parser.add_argument('-cts', '--ctsec', type=float, metavar='', required=False, help='CT secondary 1A or 5A')
@@ -49,27 +50,37 @@ group.add_argument('-s', '--short', action='store_true', help='Short Inverse')
 args = parser.parse_args()
 
 
-def trip_time(multiplier, inCurrent, pickupCurrent, ctprim, vnom, vsec, ctsec, lowlim, e, k):
+def trip_time(multiplier, inCurrent, pickupCurrent, ctprim, vnom, vsec, ctsec, lowlim, v1, v2, DTAdder, e, k):
+
+
     x = inCurrent / pickupCurrent
     y = x ** e - 1
     z = k / y
     time_to_trip = z * multiplier
 
-    return round(time_to_trip, 3)
+    return round(time_to_trip + DTAdder, 3)
 
 
 if __name__ == '__main__':
 
-    if args.ctprim is None: 
+    if args.ctprim is None:
         args.ctprim = 1
-    if args.vnom is None: 
+    if args.vnom is None:
         args.vnom = 11000
-    if args.vsec is None: 
+    if args.vsec is None:
         args.vsec = 110
-    if args.ctsec is None: 
+    if args.ctsec is None:
         args.ctsec = 1
-    if args.lowlim is None: 
+    if args.lowlim is None:
         args.lowlim = 0.2
+    if args.v1 is None:
+        args.v1 = 1
+    if args.v2 is None:
+        args.v2 = 0.1
+    if args.DTAdder is None:
+        args.DTAdder = 0
+
+
     if (args.curveA):
         e = 0.020
         k = 0.140
@@ -87,5 +98,4 @@ if __name__ == '__main__':
         k = 0.140
 
     print(f'Trip time {(trip_time(args.multiplier, args.current, args.pickup, args.ctprim, args.vnom, args.vsec,
-                                  args.ctsec, args.lowlim, e, k))} seconds')
-
+                                  args.ctsec, args.lowlim, args.v1, args.v2, args.DTAdder, e, k))} seconds')
